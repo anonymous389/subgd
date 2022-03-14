@@ -13,10 +13,14 @@ backup/
 configs/
 !experiments/sinusoid/configs/
 !experiments/hydrology/configs/
+!experiments/nl-rlc/configs/
+!experiments/miniimagenet/configs/
 
 .coverage
 .DS_Store
 *config.yml
 !example-config.yml
+!experiments/miniimagenet/configs/*.yml
+!experiments/nl-rlc/configs/*.yml
 slurm-*.out
 *.sh
