@@ -2,6 +2,8 @@
 
 Code to reproduce the experiments in the paper "Few-Shot Learning by Dimensionality Reduction in Gradient Space" (in review, 2022).
 
+![SubGD illustration](subgd.png)
+
 ## Setup
 
 1. Clone the repository
@@ -34,7 +36,7 @@ To finetune a pretrained model on a full dataset (not just a support set), use `
 The provided config must have entries `base_run_dir` (path to the pretraining run) and `checkpoint_path` (path to the initial model).
 All other config values provided in the finetuning config will overwrite values from the pretraining config.
 
-_Note_: For technical reasons, this will finetune on the validation set and evaluate on the test set in the run configuration. I.e., you might want to overwrite val_datasets and test_datasets in the finetuning config.
+_Note_: For technical reasons, this will finetune on the validation set and evaluate on the test set in the run configuration. I.e., you might want to overwrite `val_datasets` and `test_datasets` in the finetuning config.
 
 ## Documentation
 To run the documentation locally:
