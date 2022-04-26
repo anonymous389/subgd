@@ -164,3 +164,50 @@ class MetaSGDWrapper(BasePytorchModel):
 
     def reset_parameters(self):
         return super().reset_parameters()
+
+
+class MetaCurvatureWrapper(BasePytorchModel):
+    """Model wrapper for Meta-Curvature training.
+
+    Adds a per-parameter-matrix preconditioning to a BasePytorchModel that can be trained
+    via Meta-Curvature. Note that the preconditioning matrices are set to ``requires_grad=False``, which
+    is changed in the trainer class.
+
+    Parameters
+    ----------
+    cfg : Config
+        The run configuration.
+    model : BasePytorchModel
+        The model to be wrapped.
+    """
+
+    def __init__(self, cfg: Config, model: BasePytorchModel):
+        super().__init__(cfg=cfg)
+        self.model = model
+
+        if any(p.ndim > 2 for p in model.parameters()):
+            raise ValueError('MetaCurvature is only implemented for 1- or 2-dim weight matrices (i.e., no convolution)')
+
+        # trainer will set requires_grad of these parameters.
+        # m_in uses p.shape[1], because pytorch parameter matrices are of shape (out, in).
+        self.m_in = nn.ParameterList([nn.Parameter(torch.eye(p.shape[1], dtype=torch.float32) if p.ndim == 2
+                                                   else torch.ones_like(p),
+                                                   requires_grad=False)
+                                      for p in model.parameters()])
+        self.m_out = nn.ParameterList([nn.Parameter(torch.eye(p.shape[0], dtype=torch.float32) if p.ndim == 2
+                                                    else torch.tensor(float('nan'), dtype=torch.float32),  # unused
+                                                    requires_grad=False)
+                                       for p in model.parameters()])
+
+    def forward(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
+
+    def reset_parameters(self):
+        return super().reset_parameters()
+
+    def toggle_grad(self, grad: bool):
+        """Toggle requires_grad for preconditioning matrices. """
+        for m in self.m_in:
+            m.requires_grad = grad
+        for m in self.m_out:
+            m.requires_grad = grad

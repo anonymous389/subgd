@@ -15,7 +15,9 @@ from tsfewshot.logger import Logger
 from tsfewshot.loss import BaseLoss, get_loss
 from tsfewshot.metrics import lower_is_better
 from tsfewshot.models import get_model
-from tsfewshot.models.basemodel import BaseModel, BasePytorchModel, BaseSklearnModel, MetaSGDWrapper
+from tsfewshot.models.basemodel import (BaseModel, BasePytorchModel,
+                                        BaseSklearnModel, MetaCurvatureWrapper,
+                                        MetaSGDWrapper)
 from tsfewshot.models.eulerode import EulerODE
 from tsfewshot.models.lstm import LSTM
 from tsfewshot.models.manuallstm import ManualLSTM
@@ -302,6 +304,15 @@ class FinetuneTester(Tester):
                 for param, lr in zip(finetune_model.model.parameters(), finetune_model.learning_rates):
                     if param.grad is not None:
                         param.grad = lr * param.grad
+        elif isinstance(finetune_model, MetaCurvatureWrapper):
+            with torch.no_grad():
+                # apply preconditioning of Meta-Curvature
+                for param, m_in, m_out in zip(finetune_model.model.parameters(),
+                                              finetune_model.m_in,
+                                              finetune_model.m_out):
+                    if param.grad is not None:
+                        param.grad = torch.mm(m_out, torch.mm(param.grad, m_in)) if param.ndim == 2 \
+                            else m_in * param.grad
 
     def _post_step_hook(self, finetune_model: BasePytorchModel):
         pass

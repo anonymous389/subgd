@@ -1,6 +1,7 @@
 from tsfewshot.config import Config
 from tsfewshot.train.basetrainer import BaseTrainer
 from tsfewshot.train.mamltrainer import MAMLTrainer
+from tsfewshot.train.metacurvaturetrainer import MetaCurvatureTrainer
 from tsfewshot.train.metasgdtrainer import MetaSGDTrainer
 from tsfewshot.train.reptiletrainer import ReptileTrainer
 from tsfewshot.train.supervisedtrainer import SupervisedTrainer
@@ -29,6 +30,11 @@ def get_trainer(cfg: Config, is_finetune: bool = False) -> BaseTrainer:
         if cfg.model in ['persistence', 'linear']:
             raise ValueError(f'Model {cfg.model} does not support the metasgd training setup.')
         return MetaSGDTrainer(cfg, is_finetune=is_finetune)
+
+    if cfg.training_setup == 'metacurvature':
+        if cfg.model in ['persistence', 'linear']:
+            raise ValueError(f'Model {cfg.model} does not support the metacurvature training setup.')
+        return MetaCurvatureTrainer(cfg, is_finetune=is_finetune)
 
     if cfg.training_setup == 'reptile':
         if cfg.model in ['persistence', 'linear']:

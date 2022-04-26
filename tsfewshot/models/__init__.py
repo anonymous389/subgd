@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from tsfewshot.config import Config
-from tsfewshot.models.basemodel import BaseModel, BasePytorchModel, MetaSGDWrapper
+from tsfewshot.models.basemodel import BaseModel, BasePytorchModel, MetaCurvatureWrapper, MetaSGDWrapper
 from tsfewshot.models.cnn import CNN
 from tsfewshot.models.feedforward import FeedForward
 from tsfewshot.models.imagecnn import ImageCNN
@@ -109,5 +109,10 @@ def get_model(cfg: Config, is_test: bool = False, is_finetune: bool = False) -> 
         if not isinstance(model, BasePytorchModel):
             raise ValueError('MetaSGD model must be a PyTorch model.')
         model = MetaSGDWrapper(cfg, model)
+
+    if cfg.training_setup == 'metacurvature':
+        if not isinstance(model, BasePytorchModel):
+            raise ValueError('Meta-Curvature model must be a PyTorch model.')
+        model = MetaCurvatureWrapper(cfg, model)
 
     return model
