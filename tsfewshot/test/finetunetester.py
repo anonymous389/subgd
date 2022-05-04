@@ -198,7 +198,8 @@ class FinetuneTester(Tester):
             else support_y.shape[0]
         n_batches = math.ceil(support_y.shape[0] / batch_size)
         shuffled_indices = np.random.permutation(len(support_y))
-        if isinstance(finetune_model, EulerODE):
+        if isinstance(finetune_model, EulerODE)  \
+                or (hasattr(finetune_model, 'model') and isinstance(finetune_model.model, EulerODE)):
             assert n_batches == 1, "For eulerode models support set must only have one batch."
             # EulerODE expects dict as input -> support_y is a dict
             shuffled_support_x = [support_x]
@@ -221,7 +222,8 @@ class FinetuneTester(Tester):
                 loss_kwargs['std'] = self._datasets[key].stds[key].repeat(batch_y.shape[0]).to(self._device)
             optimizer.zero_grad()
 
-            if isinstance(finetune_model, EulerODE):
+            if isinstance(finetune_model, EulerODE)  \
+                    or (hasattr(finetune_model, 'model') and isinstance(finetune_model.model, EulerODE)):
                 # batch_x is a list with one item -> access the item
                 prediction = finetune_model(batch_x[0])
             else:

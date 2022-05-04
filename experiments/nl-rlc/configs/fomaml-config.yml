@@ -35,7 +35,7 @@ num_workers: 6
 plot_n_figures: 0
 predict_last_n: 50
 query_size: 50
-run_dir: experiments/rlc/runs/fomaml
+run_dir: experiments/nl-rlc/runs/fomaml
 save_every: 200
 seed: 0
 seq_length: 50

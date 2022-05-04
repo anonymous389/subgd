@@ -49,14 +49,28 @@ def plot_support_vs_mse_rlc(df: pd.DataFrame, support_sizes: List[int],
                             style=None,
                             alpha=0.6,
                             ax=None,
-                            figsize=(15 * 1 / 2.54, 8 * 1 / 2.54)):
-    if ax is None:
-        f, axs = plt.subplots(1, 3, figsize=figsize, sharey=True)
-        f.suptitle(title)
+                            figsize=(15 * 1 / 2.54, 8 * 1 / 2.54), blogpost=False):
+    if not blogpost:
+        type_axes_list = [['no-finetune supervised', 'jfr', 'normal supervised', 'pca supervised'],
+                     ['no-finetune reptile', 'normal reptile', 'pca reptile'], 
+                     ['no-finetune fomaml', 'normal fomaml', 'pca fomaml']] # 'normal metasgd', 'normal metacurv'
+        axes_titles = ['Supervised pre-training', 'Reptile', 'foMAML']
+        if ax is None:
+            f, axs = plt.subplots(1, 3, figsize=figsize, sharey=True)
+            f.suptitle(title)
+        else:
+            f = None
+            axs = [ax]
+            plt.setp(axs[0], xticks=support_sizes)
     else:
-        f = None
-        axs = [ax]
-        plt.setp(axs[0], xticks=support_sizes)
+        type_axes_list = [['no-finetune supervised', 'normal supervised', 'pca supervised']]
+        axes_titles = ['Supervised pre-training']
+        figsize=(7,4)
+        f, axs = plt.subplots(1, 1, figsize=figsize, sharey=True)
+        f.suptitle(title)
+        axs = [axs]
+        # plt.setp(axs[0], xticks=support_sizes)
+
 
     rank_vals = df.groupby('support', axis=1).rank(axis=1)
     vals = df.groupby(['support', 'type'], axis=1)
@@ -66,11 +80,7 @@ def plot_support_vs_mse_rlc(df: pd.DataFrame, support_sizes: List[int],
         vals = vals.agg(lambda s: s.mean(skipna=False))
     else:
         raise ValueError('Unknown aggregation')
-
-    type_axes_list = [['no-finetune supervised', 'jfr', 'normal supervised', 'pca supervised'],
-                 ['no-finetune reptile', 'normal reptile', 'pca reptile'], 
-                 ['no-finetune fomaml', 'normal fomaml', 'pca fomaml']]
-    axes_titles = ['Supervised pre-training', 'Reptile', 'foMAML']
+    
 
 
     for i, axes_types in enumerate(type_axes_list):
@@ -99,8 +109,9 @@ def plot_support_vs_mse_rlc(df: pd.DataFrame, support_sizes: List[int],
 
             axs[i].plot(typ_aggregated.index.get_level_values('support'),
                         typ_aggregated, ls=ls, label=label, c=col, marker=marker)
-            axs[i].fill_between(typ_aggregated.index.get_level_values('support'),
-                                lower, upper, color=col, alpha=alpha)
+            if not blogpost:
+                axs[i].fill_between(typ_aggregated.index.get_level_values('support'),
+                                    lower, upper, color=col, alpha=alpha)
             axs[0].set_ylabel(f'{"Average" if aggregation == "mean" else "Median"} {metric_name}')
             axs[i].set_title(axes_titles[i])
             
@@ -112,6 +123,7 @@ def plot_support_vs_mse_rlc(df: pd.DataFrame, support_sizes: List[int],
 
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
+        
     plt.figlegend(frameon=False, loc='lower center', bbox_to_anchor=(0.5, 0.93), ncol=5)
     plt.yscale('log')
     _ = plt.tight_layout()
